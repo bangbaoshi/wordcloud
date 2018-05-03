@@ -1,7 +1,8 @@
 # golang版本的文字云算法实现
 
-#### 效果图如下
+#### 效果图
 ![样本](/imgs/template.png)
+<img width="50%" src="/bangbaoshi/wordcloud/raw/master/imgs/template.png"/>
 
 #### 测试步骤如下
 
