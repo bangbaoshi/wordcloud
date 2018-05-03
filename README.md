@@ -3,7 +3,7 @@
 #### 效果图
 
 <img width="50%" src="/imgs/template.png"/>
-<img width="50%" src="/imgs/foot_template.png"/>
+<img width="50%" src="/imgs/template2.png"/>
 
 #### 测试步骤如下
 
