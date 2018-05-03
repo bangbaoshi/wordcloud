@@ -1,10 +1,7 @@
 # golang版本的文字云算法实现
 
 #### 效果图如下
-![样本](/imgs/out.png)
-
-#### 对应效果图的模板
-![样本](/imgs/tiger.png)
+![样本](/imgs/template.png)
 
 #### 测试步骤如下
 
