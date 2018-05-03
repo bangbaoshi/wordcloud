@@ -15,7 +15,7 @@ func renderNow() {
 	}
 	render := wordcloud_go.NewWordCloudRender(60, 8,
 		"./fonts/xin_shi_gu_yin.ttf",
-		"./imgs/tiger.png", textList, angles, colors, "./imgs/out.png")
+		"./imgs/foot.png", textList, angles, colors, "./imgs/foot_template.png")
 	render.Render()
 }
 
