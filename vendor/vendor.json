@@ -1,0 +1,29 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "isyBJXgOKYZGifWFIJhTMQb5n6Q=",
+			"path": "github.com/fogleman/gg",
+			"revision": "e611489b8685808726d3f603571b763982d92f67",
+			"revisionTime": "2017-07-28T22:55:21Z",
+			"tree": true
+		},
+		{
+			"checksumSHA1": "HaEqLU7lvRu95adaYO3pKyKgweA=",
+			"path": "github.com/golang/freetype",
+			"revision": "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4",
+			"revisionTime": "2017-06-09T00:35:04Z",
+			"tree": true
+		},
+		{
+			"path": "golang.org/x/image/font",
+			"revision": ""
+		},
+		{
+			"path": "golang.org/x/image/math/fixed",
+			"revision": ""
+		}
+	],
+	"rootPath": "github.com/walkabc/wordcloud-go"
+}
