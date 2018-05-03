@@ -36,7 +36,7 @@ import (
 )
 
 func renderNow() {
-    //需要写入的文本数组
+	//需要写入的文本数组
 	textList := []string{"恭喜", "发财", "万事", "如意"}
 	//文本角度数组
 	angles := []int{0, 15, -15, 90}
