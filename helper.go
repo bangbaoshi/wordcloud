@@ -40,17 +40,12 @@ func TwoByBitmap(imgpath string) *WorldMap {
 }
 
 func TwoByBlock(width, height int) ([]*Position, int, int) {
-	positions := make([]*Position, 0)
 	maxX := width / XUNIT
 	maxY := height / YUNIT
-	//maxX += 2
-	//maxY += 2
-
-	for y := 0; y < maxY; y++ {
-		for x := 0; x < maxX; x++ {
-			position := NewPosition(x, y, IS_NOT_FIT, 0, 0)
-			positions = append(positions, position)
-		}
+	len := maxX * maxY
+	positions := make([]*Position, len)
+	for i := 0; i < len; i++ {
+		positions[i] = NewPosition(0, 0, IS_NOT_FIT, 0, 0)
 	}
 	return positions, maxX, maxY
 }
@@ -103,7 +98,7 @@ func GetTextBound(measureDc *gg.Context, text string) (w, h, xdiff, ydiff float6
 	wdiff := float64(maxX - minX)
 	hdiff := float64(maxY - minY)
 	xdiff = float64(w1 - wdiff)
-	ydiff = float64(h1- hdiff)
+	ydiff = float64(h1 - hdiff)
 
 	return wdiff, hdiff, xdiff, ydiff
 }

@@ -3,6 +3,8 @@ package main
 import (
 	"image/color"
 	"github.com/bangbaoshi/wordcloud"
+	"time"
+	"fmt"
 )
 
 func renderNow() {
@@ -20,5 +22,8 @@ func renderNow() {
 }
 
 func main() {
+	startedAt := time.Now().Unix()
 	renderNow()
+	endAt := time.Now().Unix()
+	fmt.Printf("时间消耗:%d\n", endAt-startedAt);
 }

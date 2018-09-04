@@ -3,6 +3,7 @@ package wordcloud_go
 import (
 	"github.com/fogleman/gg"
 	"image/color"
+	"strconv"
 )
 
 type WordCloudRender struct {
@@ -50,60 +51,75 @@ func NewWordCloudRender(maxFontSize, minFontSize float64, fontPath string,
 }
 
 func (this *WordCloudRender) Render() {
-	currentFontSize := this.MaxFontSize
+	fontSize := this.MaxFontSize
 	currentTextIdx := 0
 	colorIdx := 0
 	checkRet := &CheckResult{}
 
-	itemGrid := &Grid{}
+	gridCache := make(map[string]*Grid)
+
+	var itemGrid *Grid
 	bigestSizeCnt := 0
 	for {
 		var msg string = this.TextList[currentTextIdx]
-		currentTextIdx++
-		currentTextIdx = currentTextIdx % len(this.TextList)
-		color := this.Colors[colorIdx]
-		colorIdx++
-		colorIdx = colorIdx % len(this.Colors)
-		this.DrawDc.SetRGB(float64(color.R), float64(color.G), float64(color.B))
-		w, h, xscale, yscale := GetTextBound(this.MeasureDc, msg)
-		itemGrid.XScale = int(xscale)
-		itemGrid.YScale = int(yscale)
-		if int(w)%2 != 0 {
-			w += XUNIT
-		}
-		if int(h)%2 != 0 {
-			h += YUNIT
+		key := strconv.Itoa(int(fontSize)) + msg
+		if _, ok := gridCache[key]; ok {
+			//取出缓存中的itemGrid
+			itemGrid = gridCache[key]
+		} else {
+			itemGrid = &Grid{}
+			//性能主要消耗点
+			w, h, xscale, yscale := GetTextBound(this.MeasureDc, msg)
+			itemGrid.XScale = int(xscale)
+			itemGrid.YScale = int(yscale)
+			if int(w)%2 != 0 {
+				w += XUNIT
+			}
+			if int(h)%2 != 0 {
+				h += YUNIT
+			}
+			positions, w1, h1 := TwoByBlock(int(w), int(h))
+			itemGrid.Width = int(w1)
+			itemGrid.Height = int(h1)
+			itemGrid.positions = positions
+			//把(fontSize+msg)当做一个组合缓存下来
+			gridCache[key] = itemGrid
 		}
 
-		positions, w1, h1 := TwoByBlock(int(w), int(h))
-		itemGrid.Width = int(w1)
-		itemGrid.Height = int(h1)
-		itemGrid.positions = positions
 		isFound := this.collisionCheck(
 			0, this.worldMap, itemGrid, checkRet, this.Angles)
 		if isFound {
-			DrawText(this.DrawDc, msg, float64(checkRet.Xpos+itemGrid.XScale/2),
-				float64(checkRet.Ypos+itemGrid.YScale/2), Angle2Pi(float64(checkRet.Angle)))
-			if currentFontSize == this.MaxFontSize {
+
+			currentTextIdx++
+			currentTextIdx = currentTextIdx % len(this.TextList)
+			color := this.Colors[colorIdx]
+			colorIdx++
+			colorIdx = colorIdx % len(this.Colors)
+			this.DrawDc.SetRGB(float64(color.R), float64(color.G), float64(color.B))
+
+			DrawText(this.DrawDc, msg, float64(checkRet.Xpos),
+				float64(checkRet.Ypos), Angle2Pi(float64(checkRet.Angle)))
+			if fontSize == this.MaxFontSize {
 				bigestSizeCnt++
 				if bigestSizeCnt > len(this.TextList) {
-					this.UpdateFontSize(40)
+					fontSize = 40
+					this.UpdateFontSize(fontSize)
 				}
 			}
 		} else {
-			currentFontSize -= 3
-			if currentFontSize < this.MinFontSize {
+			fontSize -= 3
+			if fontSize < this.MinFontSize {
 				break
 			}
-			this.UpdateFontSize(currentFontSize)
+			this.UpdateFontSize(fontSize)
 		}
 	}
 	this.DrawDc.SavePNG(this.OutImgPath)
 }
 
-func (this *WordCloudRender) UpdateFontSize(currentFontSize float64) {
-	this.DrawDc.SetFontSize(currentFontSize)
-	this.MeasureDc.SetFontSize(currentFontSize)
+func (this *WordCloudRender) UpdateFontSize(fontSize float64) {
+	this.DrawDc.SetFontSize(fontSize)
+	this.MeasureDc.SetFontSize(fontSize)
 }
 
 func (this *WordCloudRender) ResetMeasureDc(fontSize float64) {
