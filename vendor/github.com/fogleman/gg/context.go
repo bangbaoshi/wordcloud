@@ -2,24 +2,26 @@
 package gg
 
 import (
+	"errors"
 	"image"
 	"image/color"
+	"image/jpeg"
 	"image/png"
 	"io"
 	"math"
+	"strings"
 
 	"github.com/golang/freetype/raster"
 	"golang.org/x/image/draw"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/math/f64"
-	"github.com/golang/freetype/truetype"
 )
 
 type LineCap int
 
 const (
-	LineCapRound  LineCap = iota
+	LineCapRound LineCap = iota
 	LineCapButt
 	LineCapSquare
 )
@@ -41,7 +43,7 @@ const (
 type Align int
 
 const (
-	AlignLeft   Align = iota
+	AlignLeft Align = iota
 	AlignCenter
 	AlignRight
 )
@@ -52,9 +54,9 @@ var (
 )
 
 type Context struct {
-	font          *truetype.Font
 	width         int
 	height        int
+	rasterizer    *raster.Rasterizer
 	im            *image.RGBA
 	mask          *image.Alpha
 	color         color.Color
@@ -66,6 +68,7 @@ type Context struct {
 	current       Point
 	hasCurrent    bool
 	dashes        []float64
+	dashOffset    float64
 	lineWidth     float64
 	lineCap       LineCap
 	lineJoin      LineJoin
@@ -91,9 +94,12 @@ func NewContextForImage(im image.Image) *Context {
 // NewContextForRGBA prepares a context for rendering onto the specified image.
 // No copy is made.
 func NewContextForRGBA(im *image.RGBA) *Context {
+	w := im.Bounds().Size().X
+	h := im.Bounds().Size().Y
 	return &Context{
-		width:         im.Bounds().Size().X,
-		height:        im.Bounds().Size().Y,
+		width:         w,
+		height:        h,
+		rasterizer:    raster.NewRasterizer(w, h),
 		im:            im,
 		color:         color.Transparent,
 		fillPattern:   defaultFillStyle,
@@ -104,6 +110,15 @@ func NewContextForRGBA(im *image.RGBA) *Context {
 		fontHeight:    13,
 		matrix:        Identity(),
 	}
+}
+
+// GetCurrentPoint will return the current point and if there is a current point.
+// The point will have been transformed by the context's transformation matrix.
+func (dc *Context) GetCurrentPoint() (Point, bool) {
+	if dc.hasCurrent {
+		return dc.current, true
+	}
+	return Point{}, false
 }
 
 // Image returns the image that has been drawn by this context.
@@ -126,9 +141,21 @@ func (dc *Context) SavePNG(path string) error {
 	return SavePNG(path, dc.im)
 }
 
+// SaveJPG encodes the image as a JPG and writes it to disk.
+func (dc *Context) SaveJPG(path string, quality int) error {
+	return SaveJPG(path, dc.im, quality)
+}
+
 // EncodePNG encodes the image as a PNG and writes it to the provided io.Writer.
 func (dc *Context) EncodePNG(w io.Writer) error {
 	return png.Encode(w, dc.im)
+}
+
+// EncodeJPG encodes the image as a JPG and writes it to the provided io.Writer
+// in JPEG 4:2:0 baseline format with the given options.
+// Default parameters are used if a nil *jpeg.Options is passed.
+func (dc *Context) EncodeJPG(w io.Writer, o *jpeg.Options) error {
+	return jpeg.Encode(w, dc.im, o)
 }
 
 // SetDash sets the current dash pattern to use. Call with zero arguments to
@@ -136,6 +163,12 @@ func (dc *Context) EncodePNG(w io.Writer) error {
 // alternating on and off lengths.
 func (dc *Context) SetDash(dashes ...float64) {
 	dc.dashes = dashes
+}
+
+// SetDashOffset sets the initial offset into the dash pattern to use when
+// stroking dashed paths.
+func (dc *Context) SetDashOffset(offset float64) {
+	dc.dashOffset = offset
 }
 
 func (dc *Context) SetLineWidth(lineWidth float64) {
@@ -376,14 +409,15 @@ func (dc *Context) joiner() raster.Joiner {
 func (dc *Context) stroke(painter raster.Painter) {
 	path := dc.strokePath
 	if len(dc.dashes) > 0 {
-		path = dashed(path, dc.dashes)
+		path = dashed(path, dc.dashes, dc.dashOffset)
 	} else {
 		// TODO: this is a temporary workaround to remove tiny segments
 		// that result in rendering issues
 		path = rasterPath(flattenPath(path))
 	}
-	r := raster.NewRasterizer(dc.width, dc.height)
+	r := dc.rasterizer
 	r.UseNonZeroWinding = true
+	r.Clear()
 	r.AddStroke(path, fix(dc.lineWidth), dc.capper(), dc.joiner())
 	r.Rasterize(painter)
 }
@@ -395,8 +429,9 @@ func (dc *Context) fill(painter raster.Painter) {
 		copy(path, dc.fillPath)
 		path.Add1(dc.start.Fixed())
 	}
-	r := raster.NewRasterizer(dc.width, dc.height)
+	r := dc.rasterizer
 	r.UseNonZeroWinding = dc.fillRule == FillRuleWinding
+	r.Clear()
 	r.AddPath(path)
 	r.Rasterize(painter)
 }
@@ -405,7 +440,19 @@ func (dc *Context) fill(painter raster.Painter) {
 // line cap, line join and dash settings. The path is preserved after this
 // operation.
 func (dc *Context) StrokePreserve() {
-	painter := newPatternPainter(dc.im, dc.mask, dc.strokePattern)
+	var painter raster.Painter
+	if dc.mask == nil {
+		if pattern, ok := dc.strokePattern.(*solidPattern); ok {
+			// with a nil mask and a solid color pattern, we can be more efficient
+			// TODO: refactor so we don't have to do this type assertion stuff?
+			p := raster.NewRGBAPainter(dc.im)
+			p.SetColor(pattern.color)
+			painter = p
+		}
+	}
+	if painter == nil {
+		painter = newPatternPainter(dc.im, dc.mask, dc.strokePattern)
+	}
 	dc.stroke(painter)
 }
 
@@ -420,7 +467,19 @@ func (dc *Context) Stroke() {
 // FillPreserve fills the current path with the current color. Open subpaths
 // are implicity closed. The path is preserved after this operation.
 func (dc *Context) FillPreserve() {
-	painter := newPatternPainter(dc.im, dc.mask, dc.fillPattern)
+	var painter raster.Painter
+	if dc.mask == nil {
+		if pattern, ok := dc.fillPattern.(*solidPattern); ok {
+			// with a nil mask and a solid color pattern, we can be more efficient
+			// TODO: refactor so we don't have to do this type assertion stuff?
+			p := raster.NewRGBAPainter(dc.im)
+			p.SetColor(pattern.color)
+			painter = p
+		}
+	}
+	if painter == nil {
+		painter = newPatternPainter(dc.im, dc.mask, dc.fillPattern)
+	}
 	dc.fill(painter)
 }
 
@@ -444,6 +503,38 @@ func (dc *Context) ClipPreserve() {
 		mask := image.NewAlpha(image.Rect(0, 0, dc.width, dc.height))
 		draw.DrawMask(mask, mask.Bounds(), clip, image.ZP, dc.mask, image.ZP, draw.Over)
 		dc.mask = mask
+	}
+}
+
+// SetMask allows you to directly set the *image.Alpha to be used as a clipping
+// mask. It must be the same size as the context, else an error is returned
+// and the mask is unchanged.
+func (dc *Context) SetMask(mask *image.Alpha) error {
+	if mask.Bounds().Size() != dc.im.Bounds().Size() {
+		return errors.New("mask size must match context size")
+	}
+	dc.mask = mask
+	return nil
+}
+
+// AsMask returns an *image.Alpha representing the alpha channel of this
+// context. This can be useful for advanced clipping operations where you first
+// render the mask geometry and then use it as a mask.
+func (dc *Context) AsMask() *image.Alpha {
+	mask := image.NewAlpha(dc.im.Bounds())
+	draw.Draw(mask, dc.im.Bounds(), dc.im, image.ZP, draw.Src)
+	return mask
+}
+
+// InvertMask inverts the alpha values in the current clipping mask such that
+// a fully transparent region becomes fully opaque and vice versa.
+func (dc *Context) InvertMask() {
+	if dc.mask == nil {
+		dc.mask = image.NewAlpha(dc.im.Bounds())
+	} else {
+		for i, a := range dc.mask.Pix {
+			dc.mask.Pix[i] = 255 - a
+		}
 	}
 }
 
@@ -523,14 +614,18 @@ func (dc *Context) DrawEllipticalArc(x, y, rx, ry, angle1, angle2 float64) {
 		a2 := angle1 + (angle2-angle1)*p2
 		x0 := x + rx*math.Cos(a1)
 		y0 := y + ry*math.Sin(a1)
-		x1 := x + rx*math.Cos(a1+(a2-a1)/2)
-		y1 := y + ry*math.Sin(a1+(a2-a1)/2)
+		x1 := x + rx*math.Cos((a1+a2)/2)
+		y1 := y + ry*math.Sin((a1+a2)/2)
 		x2 := x + rx*math.Cos(a2)
 		y2 := y + ry*math.Sin(a2)
 		cx := 2*x1 - x0/2 - x2/2
 		cy := 2*y1 - y0/2 - y2/2
-		if i == 0 && !dc.hasCurrent {
-			dc.MoveTo(x0, y0)
+		if i == 0 {
+			if dc.hasCurrent {
+				dc.LineTo(x0, y0)
+			} else {
+				dc.MoveTo(x0, y0)
+			}
 		}
 		dc.QuadraticTo(cx, cy, x2, y2)
 	}
@@ -599,23 +694,17 @@ func (dc *Context) SetFontFace(fontFace font.Face) {
 	dc.fontHeight = float64(fontFace.Metrics().Height) / 64
 }
 
-func (dc *Context) SetFontSize(size float64) {
-	face := truetype.NewFace(dc.font, &truetype.Options{
-		Size: size,
-		// Hinting: font.HintingFull,
-	})
-	dc.fontFace = face
-	dc.fontHeight = size
-}
-
 func (dc *Context) LoadFontFace(path string, points float64) error {
-	face, font, err := LoadFontFace(path, points)
-	dc.font = font
+	face, err := LoadFontFace(path, points)
 	if err == nil {
 		dc.fontFace = face
 		dc.fontHeight = points * 72 / 96
 	}
 	return err
+}
+
+func (dc *Context) FontHeight() float64 {
+	return dc.fontHeight
 }
 
 func (dc *Context) drawString(im *image.RGBA, s string, x, y float64) {
@@ -678,8 +767,11 @@ func (dc *Context) DrawStringAnchored(s string, x, y, ax, ay float64) {
 // spacing and text alignment.
 func (dc *Context) DrawStringWrapped(s string, x, y, ax, ay, width, lineSpacing float64, align Align) {
 	lines := dc.WordWrap(s, width)
+
+	// sync h formula with MeasureMultilineString
 	h := float64(len(lines)) * dc.fontHeight * lineSpacing
 	h -= (lineSpacing - 1) * dc.fontHeight
+
 	x -= ax * width
 	y -= ay * h
 	switch align {
@@ -697,6 +789,29 @@ func (dc *Context) DrawStringWrapped(s string, x, y, ax, ay, width, lineSpacing 
 		dc.DrawStringAnchored(line, x, y, ax, ay)
 		y += dc.fontHeight * lineSpacing
 	}
+}
+
+func (dc *Context) MeasureMultilineString(s string, lineSpacing float64) (width, height float64) {
+	lines := strings.Split(s, "\n")
+
+	// sync h formula with DrawStringWrapped
+	height = float64(len(lines)) * dc.fontHeight * lineSpacing
+	height -= (lineSpacing - 1) * dc.fontHeight
+
+	d := &font.Drawer{
+		Face: dc.fontFace,
+	}
+
+	// max width from lines
+	for _, line := range lines {
+		adv := d.MeasureString(line)
+		currentWidth := float64(adv >> 6) // from gg.Context.MeasureString
+		if currentWidth > width {
+			width = currentWidth
+		}
+	}
+
+	return width, height
 }
 
 // MeasureString returns the rendered width and height of the specified text
@@ -742,13 +857,13 @@ func (dc *Context) ScaleAbout(sx, sy, x, y float64) {
 	dc.Translate(-x, -y)
 }
 
-// Rotate updates the current matrix with a clockwise rotation.
+// Rotate updates the current matrix with a anticlockwise rotation.
 // Rotation occurs about the origin. Angle is specified in radians.
 func (dc *Context) Rotate(angle float64) {
 	dc.matrix = dc.matrix.Rotate(angle)
 }
 
-// RotateAbout updates the current matrix with a clockwise rotation.
+// RotateAbout updates the current matrix with a anticlockwise rotation.
 // Rotation occurs about the specified point. Angle is specified in radians.
 func (dc *Context) RotateAbout(angle, x, y float64) {
 	dc.Translate(x, y)

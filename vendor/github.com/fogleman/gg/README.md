@@ -14,7 +14,8 @@ Alternatively, you may use gopkg.in to grab a specific major-version:
 
 ## Documentation
 
-https://godoc.org/github.com/fogleman/gg
+- godoc: https://godoc.org/github.com/fogleman/gg
+- pkg.go.dev: https://pkg.go.dev/github.com/fogleman/gg?tab=doc
 
 ## Hello, Circle!
 
@@ -95,6 +96,7 @@ DrawString(s string, x, y float64)
 DrawStringAnchored(s string, x, y, ax, ay float64)
 DrawStringWrapped(s string, x, y, ax, ay, width, lineSpacing float64, align Align)
 MeasureString(s string) (w, h float64)
+MeasureMultilineString(s string, lineSpacing float64) (w, h float64)
 WordWrap(s string, w float64) []string
 SetFontFace(fontFace font.Face)
 LoadFontFace(path string, points float64) error
@@ -120,6 +122,7 @@ SetLineWidth(lineWidth float64)
 SetLineCap(lineCap LineCap)
 SetLineJoin(lineJoin LineJoin)
 SetDash(dashes ...float64)
+SetDashOffset(offset float64)
 SetFillRule(fillRule FillRule)
 ```
 
@@ -173,6 +176,9 @@ defined using paths.
 Clip()
 ClipPreserve()
 ResetClip()
+AsMask() *image.Alpha
+SetMask(mask *image.Alpha)
+InvertMask()
 ```
 
 ## Helper Functions

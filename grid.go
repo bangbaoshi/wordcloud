@@ -1,4 +1,4 @@
-package wordcloud_go
+package wordcloud
 
 const (
 	IS_NOT_FIT = 1

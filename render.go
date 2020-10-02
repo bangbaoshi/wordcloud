@@ -1,7 +1,7 @@
-package wordcloud_go
+package wordcloud
 
 import (
-	"github.com/fogleman/gg"
+	"github.com/bangbaoshi/gg"
 	"image/color"
 	"strconv"
 )

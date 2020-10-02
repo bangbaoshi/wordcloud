@@ -1,4 +1,4 @@
-package wordcloud_go
+package wordcloud
 
 type CheckResult struct {
 	Angle          int
