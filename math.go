@@ -9,7 +9,6 @@ import (
 	"strconv"
 )
 
-
 const (
 	IS_NOT_FIT = 1
 	IS_FIT     = 2
@@ -167,11 +166,50 @@ func DrawText(dc *gg.Context, text string, xpos, ypos, rotation float64) {
 	}
 }
 
+func TwoByGridBitmap(measureDc *gg.Context, text string) ([]*Position, int, int) {
+	measureDc.SetRGBA(0, 0, 0, 0)
+	measureDc.Clear()
+	measureDc.SetRGBA(0, 0, 0, 1)
+	measureDc.DrawStringAnchored(text, 0, 0, 0, 0)
+	img := measureDc.Image()
+
+	w1, h1 := measureDc.MeasureString(text)
+	w := w1 / XUNIT
+	h := h1 / YUNIT
+	positions := make([]*Position, 0, w*h)
+	for y := 0; y < h; y++ {
+
+		for x := 0; x < w; x++ {
+			color := img.At(x*XUNIT, y*YUNIT)
+			_, _, _, alpha := color.RGBA()
+
+			if alpha != 0 {
+				positions = append(positions, &Position{
+					Xpos:   0,
+					Ypos:   0,
+					Value:  IS_FIT,
+					XLeiji: 0,
+					YLeiji: 0,
+				})
+			} else {
+				positions = append(positions, &Position{
+					Xpos:   0,
+					Ypos:   0,
+					Value:  IS_NOT_FIT,
+					XLeiji: 0,
+					YLeiji: 0,
+				})
+			}
+		}
+	}
+	return positions, w, h
+}
+
 func GetTextBound(measureDc *gg.Context, text string) (w, h, xdiff, ydiff float64) {
 	measureDc.SetRGBA(0, 0, 0, 0)
 	measureDc.Clear()
 	measureDc.SetRGBA(0, 0, 0, 1)
-	measureDc.DrawStringAnchored(text, 375, 375, 0.5, 0.5)
+	measureDc.DrawStringAnchored(text, 0, 0, 0, 0)
 	img := measureDc.Image()
 	width := measureDc.Width()
 	height := measureDc.Height()
@@ -179,6 +217,9 @@ func GetTextBound(measureDc *gg.Context, text string) (w, h, xdiff, ydiff float6
 	maxY := 0
 	minX := 9999999
 	minY := 9999999
+
+	w1, h1 := measureDc.MeasureString(text)
+
 	for y := 0; y < height; y++ {
 
 		for x := 0; x < width; x++ {
@@ -201,7 +242,7 @@ func GetTextBound(measureDc *gg.Context, text string) (w, h, xdiff, ydiff float6
 			}
 		}
 	}
-	w1, h1 := measureDc.MeasureString(text)
+
 	wdiff := float64(maxX - minX)
 	hdiff := float64(maxY - minY)
 	xdiff = float64(w1 - wdiff)

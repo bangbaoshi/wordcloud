@@ -79,16 +79,7 @@ func (this *WordCloudRender) Render() {
 		} else {
 			itemGrid = &Grid{}
 			//性能主要消耗点
-			w, h, xscale, yscale := GetTextBound(this.MeasureDc, msg)
-			itemGrid.XScale = int(xscale)
-			itemGrid.YScale = int(yscale)
-			if int(w)%2 != 0 {
-				w += XUNIT
-			}
-			if int(h)%2 != 0 {
-				h += YUNIT
-			}
-			positions, w1, h1 := TwoByBlock(int(w), int(h))
+			positions, w1, h1 := TwoByGridBitmap(this.MeasureDc, msg)
 			itemGrid.Width = int(w1)
 			itemGrid.Height = int(h1)
 			itemGrid.positions = positions
@@ -107,8 +98,8 @@ func (this *WordCloudRender) Render() {
 			colorIdx = colorIdx % len(this.Colors)
 			this.DrawDc.SetRGB(color.R, color.G, color.B)
 
-			DrawText(this.DrawDc, msg, float64(checkRet.Xpos-itemGrid.XScale),
-				float64(checkRet.Ypos-itemGrid.YScale), Angle2Pi(float64(checkRet.Angle)))
+			DrawText(this.DrawDc, msg, float64(checkRet.Xpos),
+				float64(checkRet.Ypos), Angle2Pi(float64(checkRet.Angle)))
 			if fontSize == this.MaxFontSize {
 				bigestSizeCnt++
 				if bigestSizeCnt >= len(this.TextList) {
