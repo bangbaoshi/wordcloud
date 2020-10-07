@@ -111,16 +111,16 @@ func (this *WordCloudRender) Render() {
 				float64(checkRet.Ypos), Angle2Pi(float64(checkRet.Angle)))
 			if fontSize == this.MaxFontSize {
 				bigestSizeCnt++
-				if bigestSizeCnt > len(this.TextList) {
-					fontSize = 40
+				if bigestSizeCnt >= len(this.TextList) {
+					fontSize = this.MaxFontSize / 2
 					this.UpdateFontSize(fontSize)
 				}
 			}
 		} else {
-			fontSize -= 3
 			if fontSize < this.MinFontSize {
 				break
 			}
+			fontSize -= 5
 			this.UpdateFontSize(fontSize)
 		}
 	}
