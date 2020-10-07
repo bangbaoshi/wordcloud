@@ -107,8 +107,8 @@ func (this *WordCloudRender) Render() {
 			colorIdx = colorIdx % len(this.Colors)
 			this.DrawDc.SetRGB(color.R, color.G, color.B)
 
-			DrawText(this.DrawDc, msg, float64(checkRet.Xpos+itemGrid.XScale),
-				float64(checkRet.Ypos+itemGrid.YScale), Angle2Pi(float64(checkRet.Angle)))
+			DrawText(this.DrawDc, msg, float64(checkRet.Xpos-itemGrid.XScale),
+				float64(checkRet.Ypos-itemGrid.YScale), Angle2Pi(float64(checkRet.Angle)))
 			if fontSize == this.MaxFontSize {
 				bigestSizeCnt++
 				if bigestSizeCnt >= len(this.TextList) {
