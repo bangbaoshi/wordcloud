@@ -44,7 +44,7 @@ replace (
 
 require (
 	github.com/bangbaoshi/gg v1.3.1-0.20201002023441-e595d6523adf
-	github.com/fogleman/gg v1.3.1-0.20200515011029-ad4d1eafac46
+	github.com/fogleman/gg v1.3.1-0.20200515011029-ad4d1eafac46 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	golang.org/x/image v0.0.0-00010101000000-000000000000 // indirect
 )

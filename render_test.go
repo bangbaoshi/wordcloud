@@ -2,7 +2,6 @@ package wordcloud
 
 import (
 	"fmt"
-	_ "github.com/bangbaoshi/gg"
 	"image/color"
 	"testing"
 	"time"
