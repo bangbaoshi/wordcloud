@@ -1,7 +1,7 @@
 package wordcloud
 
 import (
-	"github.com/bangbaoshi/gg"
+	gg2 "github.com/bangbaoshi/gg"
 	"image/color"
 	"strconv"
 )
@@ -11,8 +11,8 @@ type WordCloudRender struct {
 	MinFontSize    float64
 	FontPath       string
 	OutlineImgPath string
-	MeasureDc      *gg.Context
-	DrawDc         *gg.Context
+	MeasureDc      *gg2.Context
+	DrawDc         *gg2.Context
 	TextList       []string
 	Angles         []int
 	Colors         []*color.RGBA
@@ -37,7 +37,7 @@ func NewWordCloudRender(maxFontSize, minFontSize float64, fontPath string,
 	}
 	worldMap := TwoByBitmap(imgPath)
 	render.worldMap = worldMap
-	drawDc := gg.NewContext(worldMap.RealImageWidth, worldMap.RealImageHeight)
+	drawDc := gg2.NewContext(worldMap.RealImageWidth, worldMap.RealImageHeight)
 	drawDc.SetRGB(1, 1, 1)
 	drawDc.Clear()
 	drawDc.SetRGB(0, 0, 0)
@@ -123,7 +123,7 @@ func (this *WordCloudRender) UpdateFontSize(fontSize float64) {
 }
 
 func (this *WordCloudRender) ResetMeasureDc(fontSize float64) {
-	measureDc := gg.NewContext(this.worldMap.RealImageWidth, this.worldMap.RealImageHeight)
+	measureDc := gg2.NewContext(this.worldMap.RealImageWidth, this.worldMap.RealImageHeight)
 	measureDc.SetRGBA(0, 0, 0, 0)
 	measureDc.Clear()
 	this.MeasureDc = measureDc
