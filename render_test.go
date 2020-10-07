@@ -2,7 +2,6 @@ package wordcloud
 
 import (
 	"fmt"
-	"image/color"
 	"testing"
 	"time"
 )
@@ -10,9 +9,9 @@ import (
 func renderNow() {
 	textList := []string{"恭喜", "发财", "万事", "如意"}
 	angles := []int{0}
-	colors := []*color.RGBA{
-		&color.RGBA{0x0, 0x60, 0x30, 0xff},
-		&color.RGBA{0x60, 0x0, 0x0, 0xff},
+	colors := []*Color{
+		&Color{0x0, 0x60, 0x30},
+		&Color{0x60, 0x0, 0x0},
 		// &color.RGBA{0x73, 0x73, 0x0, 0xff},
 	}
 	render := NewWordCloudRender(60, 8,

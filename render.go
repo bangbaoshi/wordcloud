@@ -6,6 +6,17 @@ import (
 	"strconv"
 )
 
+type CheckResult struct {
+	Angle          int
+	Xpos           int
+	Ypos           int
+	LastCheckAngle int
+}
+
+type Color struct {
+	R, G, B float64
+}
+
 type WordCloudRender struct {
 	MaxFontSize    float64
 	MinFontSize    float64
@@ -15,14 +26,14 @@ type WordCloudRender struct {
 	DrawDc         *gg2.Context
 	TextList       []string
 	Angles         []int
-	Colors         []*color.RGBA
+	Colors         []*Color
 	OutImgPath     string
 	worldMap       *WorldMap
 }
 
 func NewWordCloudRender(maxFontSize, minFontSize float64, fontPath string,
 	imgPath string, textList []string,
-	angles []int, colors []*color.RGBA,
+	angles []int, colors []*Color,
 	outImgPath string) *WordCloudRender {
 
 	render := &WordCloudRender{
@@ -95,7 +106,7 @@ func (this *WordCloudRender) Render() {
 			color := this.Colors[colorIdx]
 			colorIdx++
 			colorIdx = colorIdx % len(this.Colors)
-			this.DrawDc.SetRGB(float64(color.R), float64(color.G), float64(color.B))
+			this.DrawDc.SetRGB(color.R, color.G, color.B)
 
 			DrawText(this.DrawDc, msg, float64(checkRet.Xpos),
 				float64(checkRet.Ypos), Angle2Pi(float64(checkRet.Angle)))
