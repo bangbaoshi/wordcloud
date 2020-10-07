@@ -2,7 +2,6 @@ package wordcloud
 
 import (
 	gg2 "github.com/bangbaoshi/gg"
-	"image/color"
 	"strconv"
 )
 
