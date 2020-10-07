@@ -170,7 +170,7 @@ func DrawText(dc *gg.Context, text string, xpos, ypos, rotation float64) {
 func GetTextBound(measureDc *gg.Context, text string) (w, h, xdiff, ydiff float64) {
 	measureDc.SetRGBA(0, 0, 0, 0)
 	measureDc.Clear()
-	measureDc.SetRGBA(0, 0, 0, 0)
+	measureDc.SetRGBA(0, 0, 0, 1)
 	measureDc.DrawStringAnchored(text, 375, 375, 0.5, 0.5)
 	img := measureDc.Image()
 	width := measureDc.Width()
