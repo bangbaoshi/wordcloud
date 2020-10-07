@@ -112,7 +112,7 @@ func (this *WordCloudRender) Render() {
 			if fontSize == this.MaxFontSize {
 				bigestSizeCnt++
 				if bigestSizeCnt >= len(this.TextList) {
-					fontSize = this.MaxFontSize / 2
+					fontSize = this.MaxFontSize / 3
 					this.UpdateFontSize(fontSize)
 				}
 			}
