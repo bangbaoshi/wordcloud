@@ -171,35 +171,20 @@ func TwoByGridBitmap(measureDc *gg.Context, text string) ([]*Position, int, int)
 	measureDc.Clear()
 	measureDc.SetRGBA(0, 0, 0, 1)
 	measureDc.DrawStringAnchored(text, 0, 0, 0, 0)
-	img := measureDc.Image()
 
 	w1, h1 := measureDc.MeasureString(text)
 	w := int(w1) / XUNIT
 	h := int(h1) / YUNIT
 	positions := make([]*Position, 0, w*h)
 	for y := 0; y < h; y++ {
-
 		for x := 0; x < w; x++ {
-			color := img.At(x*XUNIT, y*YUNIT)
-			_, _, _, alpha := color.RGBA()
-
-			if alpha != 0 {
-				positions = append(positions, &Position{
-					Xpos:   0,
-					Ypos:   0,
-					Value:  IS_FIT,
-					XLeiji: 0,
-					YLeiji: 0,
-				})
-			} else {
-				positions = append(positions, &Position{
-					Xpos:   0,
-					Ypos:   0,
-					Value:  IS_NOT_FIT,
-					XLeiji: 0,
-					YLeiji: 0,
-				})
-			}
+			positions = append(positions, &Position{
+				Xpos:   0,
+				Ypos:   0,
+				Value:  IS_NOT_FIT,
+				XLeiji: 0,
+				YLeiji: 0,
+			})
 		}
 	}
 	return positions, w, h
