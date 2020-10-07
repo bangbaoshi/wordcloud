@@ -207,7 +207,8 @@ func GetTextBound(measureDc *gg.Context, text string) (w, h, xdiff, ydiff float6
 	xdiff = float64(w1 - wdiff)
 	ydiff = float64(h1 - hdiff)
 
-	return wdiff, hdiff, xdiff, ydiff
+	//return wdiff, hdiff, xdiff, ydiff
+	return w1, h1, xdiff, ydiff
 }
 
 /*
