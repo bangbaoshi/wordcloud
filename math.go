@@ -173,8 +173,8 @@ func TwoByGridBitmap(measureDc *gg.Context, text string) ([]*Position, int, int)
 	measureDc.DrawStringAnchored(text, 0, 0, 0, 0)
 
 	w1, h1 := measureDc.MeasureString(text)
-	w := int(w1) / XUNIT
-	h := int(h1) / YUNIT
+	w := int(w1) / XUNIT + 1
+	h := int(h1) / YUNIT + 1
 	positions := make([]*Position, 0, w*h)
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
