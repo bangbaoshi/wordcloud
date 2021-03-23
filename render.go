@@ -48,9 +48,9 @@ func NewWordCloudRender(maxFontSize, minFontSize float64, fontPath string,
 	worldMap := TwoByBitmap(imgPath)
 	render.worldMap = worldMap
 	drawDc := gg2.NewContext(worldMap.RealImageWidth, worldMap.RealImageHeight)
-	drawDc.SetRGB(1, 1, 1)
+	drawDc.SetRGBA(1, 1, 1, 0)
 	drawDc.Clear()
-	drawDc.SetRGB(0, 0, 0)
+	drawDc.SetRGBA(0, 0, 0, 0) // 修改背景图为透明
 	render.DrawDc = drawDc
 	if err := drawDc.LoadFontFace(fontPath, render.MaxFontSize); err != nil {
 		panic(err)
