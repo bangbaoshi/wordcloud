@@ -14,9 +14,11 @@ func renderNow() {
 		&Color{0x60, 0x0, 0x0},
 		// &color.RGBA{0x73, 0x73, 0x0, 0xff},
 	}
+	// 图片透明底
+	bgAlpha := 0.6
 	render := NewWordCloudRender(60, 8,
 		"./fonts/xin_shi_gu_yin.ttf",
-		"./imgs/foot.png", textList, angles, colors, "./imgs/foot_template2.png")
+		"./imgs/foot.png", textList, angles, colors, bgAlpha, "./imgs/foot_template2.png")
 	render.Render()
 }
 

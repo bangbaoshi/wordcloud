@@ -40,15 +40,17 @@ func renderNow() {
 	//文本角度数组
 	angles := []int{0, 15, -15, 90}
 	//文本颜色数组
-	colors := []*color.RGBA{
+	colors := []*wordcloud_go.Color{
 		&color.RGBA{0x0, 0x60, 0x30, 0xff},
 		&color.RGBA{0x60, 0x0, 0x0, 0xff},
 		&color.RGBA{0x73, 0x73, 0x0, 0xff},
 	}
+	// 图片透明底
+	bgAlpha := 0.6
 	//设置对应的字体路径，和输出路径
 	render := wordcloud_go.NewWordCloudRender(60, 8,
 		"./fonts/xin_shi_gu_yin.ttf",
-		"./imgs/tiger.png", textList, angles, colors, "./imgs/out.png")
+		"./imgs/tiger.png", textList, angles, colors, bgAlpha, "./imgs/out.png")
 	//开始渲染
 	render.Render()
 }

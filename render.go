@@ -32,7 +32,7 @@ type WordCloudRender struct {
 
 func NewWordCloudRender(maxFontSize, minFontSize float64, fontPath string,
 	imgPath string, textList []string,
-	angles []int, colors []*Color,
+	angles []int, colors []*Color, bgAlpha float64,
 	outImgPath string) *WordCloudRender {
 
 	render := &WordCloudRender{
@@ -48,9 +48,9 @@ func NewWordCloudRender(maxFontSize, minFontSize float64, fontPath string,
 	worldMap := TwoByBitmap(imgPath)
 	render.worldMap = worldMap
 	drawDc := gg2.NewContext(worldMap.RealImageWidth, worldMap.RealImageHeight)
-	drawDc.SetRGBA(1, 1, 1, 0)
+	drawDc.SetRGBA(1, 1, 1, bgAlpha) // 新增生成图片透明度参数配置
 	drawDc.Clear()
-	drawDc.SetRGBA(0, 0, 0, 0) // 修改背景图为透明
+	drawDc.SetRGBA(0, 0, 0, bgAlpha) // 新增生成图片透明度参数配置
 	render.DrawDc = drawDc
 	if err := drawDc.LoadFontFace(fontPath, render.MaxFontSize); err != nil {
 		panic(err)
