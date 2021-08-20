@@ -12,6 +12,8 @@ git clone https://github.com/bangbaoshi/wordcloud.git
 
 cd wordcloud
 
+go mod vendor
+
 go run boot/main.go
 
 ````
