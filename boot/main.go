@@ -1,8 +1,9 @@
-package wordcloud
+package main
 
 import (
 	"image/color"
-	"testing"
+
+	"github.com/bangbaoshi/wordcloud"
 )
 
 func renderNow() {
@@ -17,13 +18,13 @@ func renderNow() {
 		{0x73, 0x73, 0x0, 0xff},
 	}
 	//设置对应的字体路径，和输出路径
-	render := NewWordCloudRender(60, 8,
+	render := wordcloud.NewWordCloudRender(60, 8,
 		"./fonts/xin_shi_gu_yin.ttf",
 		"./imgs/china.png", textList, angles, colors, "./imgs/out.png")
 	//开始渲染
 	render.Render()
 }
 
-func TestRander(t *testing.T) {
+func main() {
 	renderNow()
 }

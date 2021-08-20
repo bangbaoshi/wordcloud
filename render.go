@@ -1,8 +1,10 @@
 package wordcloud
 
 import (
-	gg2 "github.com/bangbaoshi/gg"
+	"image/color"
 	"strconv"
+
+	gg2 "github.com/bangbaoshi/gg"
 )
 
 type CheckResult struct {
@@ -10,10 +12,6 @@ type CheckResult struct {
 	Xpos           int
 	Ypos           int
 	LastCheckAngle int
-}
-
-type Color struct {
-	R, G, B float64
 }
 
 type WordCloudRender struct {
@@ -25,14 +23,14 @@ type WordCloudRender struct {
 	DrawDc         *gg2.Context
 	TextList       []string
 	Angles         []int
-	Colors         []*Color
+	Colors         []*color.RGBA
 	OutImgPath     string
 	worldMap       *WorldMap
 }
 
 func NewWordCloudRender(maxFontSize, minFontSize float64, fontPath string,
 	imgPath string, textList []string,
-	angles []int, colors []*Color,
+	angles []int, colors []*color.RGBA,
 	outImgPath string) *WordCloudRender {
 
 	render := &WordCloudRender{
@@ -96,7 +94,7 @@ func (this *WordCloudRender) Render() {
 			color := this.Colors[colorIdx]
 			colorIdx++
 			colorIdx = colorIdx % len(this.Colors)
-			this.DrawDc.SetRGB(color.R, color.G, color.B)
+			this.DrawDc.SetRGB((float64)(color.R), (float64)(color.G), (float64)(color.B))
 
 			DrawText(this.DrawDc, msg, float64(checkRet.Xpos),
 				float64(checkRet.Ypos), Angle2Pi(float64(checkRet.Angle)))
